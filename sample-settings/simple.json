@@ -1,0 +1,16 @@
+{
+  "schedule": [
+    { "time": "16:00", "event-name": "スプリント開始" },
+    { "time": "16:11", "event-name": "1分レポート書いてね" },
+    { "time": "16:12", "event-name": "スプリント終了" }
+  ],
+  "music": {
+    "スプリント開始": "start.mp3",
+    "1分レポート書いてね": "1min-report.mp3",
+    "スプリント終了": "end.mp3"
+  },
+  "ntp-server-urls": [
+    "http://ntp-a1.nict.go.jp/cgi-bin/json",
+    "http://ntp-b1.nict.go.jp/cgi-bin/json"
+  ]
+}
