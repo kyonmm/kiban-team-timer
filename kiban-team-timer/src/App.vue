@@ -2,23 +2,22 @@
   <div id="app">
     Hoge
     <button v-on:click="doHello">Hello!!!</button>
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <Config ref="config"></Config>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
 import {SomeModel} from './models/SomeModel.js'
+import Config from "./components/Config.vue"
 
 export default {
   name: 'app',
   components: {
-    HelloWorld
+    Config
   },
   methods :{
     doHello() {
-      alert(new SomeModel().hello())
+      alert(this.$refs.config.content)
     }
   }
 }
