@@ -4,16 +4,16 @@
     <button v-on:click="doHello">Hello!!!</button>
     <Config ref="config"></Config>
 
-    <dl>
-    <dt>現在</dt><dd>{{currentTime}}</dd>
-    <dt>次のイベント</dt><dd>{{nextEvent}}</dd>
-    <dt>Future Events</dt>
-    <dd>
-      <ol v-for="ev in futureEvents">
-        <li>{{ev.time}} : {{ev.eventName}}</li>
-      </ol>
-    </dd>
-    </dl>
+    <table id="main-contents">
+      <tr><td class="key">現在</td><td class="value">{{currentTime}}</td></tr>
+      <tr><td class="key">次のイベント</td><td class="value">{{nextEvent}}</td></tr>
+      <tr><td class="key">Future Events</td>
+      <td class="value">
+        <ol id="future-events-list">
+          <li v-for="ev in futureEvents">{{ev.time}} : {{ev.eventName}}</li>
+        </ol>
+      </td></tr>
+    </table>
   </div>
 </template>
 
@@ -83,5 +83,24 @@ console.log(diff)
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+  width: 800px;
 }
+#main-contents {
+  width: 600px;
+  border: solid 1px black;
+}
+#future-events-list {
+  list-style-type: none;
+}
+.key {
+  border: solid 1px black;
+  text-align: left;
+  padding: 5px;
+}
+.value {
+  border: solid 1px black;
+  text-align: left;
+  padding: 5px;
+}
+
 </style>
