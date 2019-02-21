@@ -9,7 +9,7 @@
 <script>
 import {SomeModel} from './models/SomeModel.js'
 import Config from "./components/Config.vue"
-
+var timer = null;
 export default {
   name: 'app',
   components: {
@@ -17,7 +17,13 @@ export default {
   },
   methods :{
     doHello() {
-      this.notify();
+      if(timer != null){
+        clearInterval(timer);
+        timer = null;
+        return;
+      }
+      timer = setInterval(this.notify,10000);
+
     },
     notify() {
       const soundName = this.$refs.config.content
