@@ -17,7 +17,11 @@ export default {
   },
   methods :{
     doHello() {
-      alert(this.$refs.config.content)
+      this.notify();
+    },
+    notify() {
+      const soundName = this.$refs.config.content
+      new Audio(require("./assets/"+soundName)).play();
     }
   }
 }
