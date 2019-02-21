@@ -3,6 +3,17 @@
     Hoge
     <button v-on:click="doHello">Hello!!!</button>
     <Config ref="config"></Config>
+
+    <dl>
+    <dt>現在</dt><dd>{{currentTime}}</dd>
+    <dt>次のイベント</dt><dd>{{nextEvent}}</dd>
+    <dt>Future Events</dt>
+    <dd>
+      <ol v-for="ev in futureEvents">
+        <li>{{ev.time}} : {{ev.eventName}}</li>
+      </ol>
+    </dd>
+    </dl>
   </div>
 </template>
 
@@ -16,6 +27,16 @@ export default {
   name: 'app',
   components: {
     Config
+  },
+  data: function() {
+    return {
+      currentTime: "sample",
+      nextEvent: "sample2",
+      futureEvents: [
+        { time: "aaa", eventName: "bbb" }, 
+        { time: "ccc", eventName: "ddd" }, 
+      ]
+    }
   },
   methods :{
     doHello() {
