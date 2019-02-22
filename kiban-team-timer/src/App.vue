@@ -1,7 +1,5 @@
 <template>
   <div id="app">
-    <Config ref="config"></Config>
-
     <table id="main-contents">
       <tr><td class="key">現在</td><td class="value">{{currentTime}}</td></tr>
       <tr><td class="key">次のイベント</td><td class="value">{{events[nextEventIndex]}}</td></tr>
@@ -16,18 +14,14 @@
 </template>
 
 <script>
-import {SomeModel} from './models/SomeModel.js'
-import Config from "./components/Config.vue"
 import {Schedule} from "./models/Schedule.js"
 import {Clock} from "./models/Clock.js"
 
 var clock;
-var timer = null;
 
 export default {
   name: 'app',
   components: {
-    Config
   },
   data: function() {
     return {
