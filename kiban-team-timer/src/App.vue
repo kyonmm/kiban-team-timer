@@ -2,8 +2,8 @@
   <div id="app">
     <table id="main-contents">
       <tr><td class="key">現在</td><td class="value">{{currentTime}}</td></tr>
-      <tr><td class="key">次のイベント</td><td class="value">{{events[nextEventIndex]}}</td></tr>
-      <tr><td class="key">Future Events</td>
+      <tr><td class="key next-event">次のイベント</td><td class="value next-event">{{events[nextEventIndex].time}} : {{events[nextEventIndex]["event-name"]}}</td></tr>
+      <tr><td class="key" id="future-events">Future Events</td>
       <td class="value">
         <ol id="future-events-list">
           <li v-for="ev in futureEvents()">{{ev.time}} : {{ev["event-name"]}}</li>
@@ -96,14 +96,20 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
-  width: 800px;
 }
 #main-contents {
-  width: 600px;
+  margin-right: auto;
+  margin-left: auto;
+  width: 800px;
   border: solid 1px black;
 }
 #future-events-list {
   list-style-type: none;
+  padding: 0px;
+  margin: 0px;
+}
+#future-events {
+  vertical-align: baseline;
 }
 .key {
   border: solid 1px black;
@@ -114,6 +120,9 @@ export default {
   border: solid 1px black;
   text-align: left;
   padding: 5px;
+}
+.next-event {
+  font-size: 200%;
 }
 
 </style>
