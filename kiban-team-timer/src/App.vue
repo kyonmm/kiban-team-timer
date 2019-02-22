@@ -21,6 +21,9 @@
 import {SomeModel} from './models/SomeModel.js'
 import Config from "./components/Config.vue"
 import {Schedule} from "./models/Schedule.js"
+import {Clock} from "./models/Clock.js"
+
+var clock;
 var timer = null;
 
 export default {
@@ -30,7 +33,7 @@ export default {
   },
   data: function() {
     return {
-      currentTime: "sample",
+      currentTime: null,
       nextEvent: "sample2",
       futureEvents: [
         { time: "aaa", eventName: "bbb" }, 
@@ -54,7 +57,34 @@ export default {
       new Audio(require("./assets/"+ fileName)).play();
       console.log(fileName)
     }
-
+  },
+  created() {
+    const schedule = new Schedule();
+    Clock.createAsync(['']).then(c => {
+      clock = c;
+      setInterval(() => {
+        const now = clock.now();
+        const nowDate = new Date(now);
+        const nowText = nowDate.toLocaleTimeString();
+        if (nowText != this.currentTime) {
+          this.currentTime = nowText;
+        }
+        const events = schedule.getNextEvents(nowDate.getHours(), nowDate.getMinutes());
+        events.map( x => {
+          const eventTime = new Date(now);
+          const splitted = x.time.split(':');
+          eventTime.setHours(Number.parseInt(splitted[0]));
+          eventTime.setMinutes(Number.parseInt(splitted[1]));
+          eventTime.setSeconds(0);
+          eventTime.setMilliseconds(0);
+          const diff = eventTime.getTime() - nowDate.getTime();
+          if (diff < 0) {
+            console.log(diff);
+            this.notify(x["event-name"]);
+          }
+        });
+      }, 100);
+    });
   },
   mounted() {
     console.log("mounted");
@@ -68,9 +98,15 @@ export default {
       eventTime.setMinutes(Number.parseInt(splitted[1]))
       eventTime.setSeconds(0)
       const diff = eventTime.getTime() - now.getTime()
-console.log(diff)
+      console.log(diff)
       setTimeout(() => this.notify(x["event-name"]), diff)
     })
+  },
+  beforeDestroy() {
+    console.log("before destroy");
+    if (clock) {
+      clock.dispose();
+    }
   }
 }
 </script>
