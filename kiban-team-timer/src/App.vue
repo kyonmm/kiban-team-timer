@@ -79,7 +79,7 @@ export default {
           if (diff < 0) {
             console.log(diff);
             this.notify(x["event-name"]);
-            this.nextEventIndex = (this.nextEventIndex + 1) % this.events.length;
+            this.nextEventIndex = i + 1;
           }
         }
       }, 100);
