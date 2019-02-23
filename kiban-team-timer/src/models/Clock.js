@@ -4,10 +4,9 @@ export class Clock {
   constructor(ntpServers, baseTime, localMode) {
     this.ntpServers = ntpServers;
     this.baseTime = baseTime;
-    this.secondHand = 0;
+    this.startTime = performance.now();
     this.id = Math.random();
     this.syncTimer = new Timer(() => this.sync(), 30 * 60 * 1000).start();
-    this.secondTimer = new Timer(() => this.tick(), 1000).start();
     this.localMode = localMode;
   }
 
@@ -26,22 +25,18 @@ export class Clock {
     const crntNtpServer = this.ntpServers[0];
     Ntp.ntpNowAsync(crntNtpServer).then(st => {
       this.baseTime = st;
-      this.secondHand = 0;
+      this.startTime = performance.now();
       this.isLocalMode = false;
     }).catch((e) => {});
   }
 
-  tick() {
-    this.secondHand++;
-  }
-
   now() {
-    return this.baseTime + this.secondHand * 1000;
+    const diff = performance.now() - this.startTime;
+    return this.baseTime + diff;
   }
   
   dispose() {
     this.syncTimer.dispose();
-    this.secondTimer.dispose();
   }
 }
 
