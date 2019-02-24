@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <table id="main-contents">
-      <tr><td class="key">現在</td><td class="value">{{currentTime}}</td></tr>
+      <tr><td class="key">現在</td><td class="value">{{currentTime}}{{mode}}</td></tr>
       <tr><td class="key next-event">次のイベント</td><td class="value next-event">{{events[nextEventIndex].time}} : {{events[nextEventIndex]["event-name"]}}</td></tr>
       <tr><td class="key" id="future-events">Future Events</td>
       <td class="value">
@@ -25,6 +25,7 @@ export default {
   },
   data: function() {
     return {
+      mode: null,
       currentTime: null,
       nextEventIndex: 0,
       events: [{}],
@@ -50,11 +51,12 @@ export default {
   created() {
     const schedule = new Schedule();
     this.events = schedule.getAllEvents();
-    Clock.createAsync(['']).then(c => {
+    Clock.createAsync(schedule.getNtpServerUrls()).then(c => {
       clock = c;
       const now = new Date(clock.now());
       this.nextEventIndex = schedule.getNextEventIndex(now);
       setInterval(() => {
+        this.mode = clock.isLocalMode() ? '(システム時刻使用中)' : '';
         const now = clock.now();
         const nowDate = new Date(now);
         const nowText = nowDate.toLocaleTimeString();

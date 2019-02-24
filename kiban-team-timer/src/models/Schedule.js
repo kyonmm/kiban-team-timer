@@ -276,10 +276,10 @@ export class Schedule {
         "ふりかえり開始": "start-1h-review.mp3",
         "そろそろ終わり": "end-1h-review.mp3"
       },
-        "ntp-server-urls": [
-          "http://ntp-a1.nict.go.jp/cgi-bin/json",
-          "http://ntp-b1.nict.go.jp/cgi-bin/json"
-        ]
+      "ntp-server-urls": [
+        "http://ntp-a1.nict.go.jp/cgi-bin/json",
+        "http://ntp-b1.nict.go.jp/cgi-bin/json"
+      ]
     }
   }
  
@@ -296,6 +296,10 @@ export class Schedule {
   }
 
   getMusic(eventName) {
-    return this.timerConfigJson.music[eventName]
+    return this.timerConfigJson.music[eventName];
+  }
+
+  getNtpServerUrls() {
+    return this.timerConfigJson["ntp-server-urls"];
   }
 }

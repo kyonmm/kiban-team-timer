@@ -1,4 +1,4 @@
-//import * as axios from "axios"
+import * as axios from "axios"
 
 export class Clock {
   constructor(ntpServers, baseTime, localMode) {
@@ -58,9 +58,8 @@ class Timer {
 
 const Ntp = {
   async ntpNowAsync(ntpServerUrl) {
-    throw new Error();
-    //return axios.get(ntpServerUrl).then(res => {
-    //  return res.st * 1000;
-    //});
+    return axios.get(ntpServerUrl).then(res => {
+      return res.data.st * 1000;
+    });
   }
 }
