@@ -6,6 +6,10 @@
         <td class="value">{{currentTime}}, 前回同期時刻{{syncTime}}<span class="warn">{{mode}}</span></td>
       </tr>
       <tr>
+        <td class="key current-event">現在のイベント</td>
+        <td class="value current-event">{{currentEventName()}}(残り: {{restTime()}})</td>
+      </tr>
+      <tr>
         <td class="key next-event">次のイベント</td>
         <td class="value next-event">{{events[nextEventIndex].time}} : {{events[nextEventIndex]["event-name"]}}</td>
       </tr>
@@ -57,6 +61,30 @@ export default {
         console.log("error Audio.play: " + e);
       });
       console.log(fileName)
+    },
+    restTime() {
+      if (!clock) {
+        return "";
+      }
+      const schedule = new Schedule();
+      const now = new Date(clock.now());
+      const x = this.events[schedule.getNextEventIndex(now)];
+      const nextEventTime = new Date(now.getTime());
+      const splitted = x.time.split(':');
+      nextEventTime.setHours(Number.parseInt(splitted[0]));
+      nextEventTime.setMinutes(Number.parseInt(splitted[1]));
+      nextEventTime.setSeconds(0);
+      nextEventTime.setMilliseconds(0);
+      const diff = nextEventTime - now;
+      const restMin = Math.floor(diff / 60000);
+      if (restMin != 0) {
+        return restMin + "分";
+      }
+      return Math.ceil(diff / 1000) + "秒";
+    },
+    currentEventName() {
+      const index = this.nextEventIndex == 0 ? this.events.length - 1 : this.nextEventIndex - 1;
+      return this.events[index]["event-name"];
     }
   },
   created() {
