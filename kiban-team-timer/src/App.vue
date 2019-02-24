@@ -17,7 +17,7 @@
         <td class="key" id="future-events">Future Events</td>
         <td class="value">
           <ol id="future-events-list">
-            <li v-for="ev in futureEvents()">{{ev.time}} : {{ev["event-name"]}}</li>
+            <li v-for="(ev, index) in futureEvents()" :key='index'>{{ev.time}} : {{ev["event-name"]}}</li>
           </ol>
         </td>
       </tr>
