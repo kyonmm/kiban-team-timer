@@ -1,14 +1,22 @@
 <template>
   <div id="app">
     <table id="main-contents">
-      <tr><td class="key">現在</td><td class="value">{{currentTime}}{{mode}}</td></tr>
-      <tr><td class="key next-event">次のイベント</td><td class="value next-event">{{events[nextEventIndex].time}} : {{events[nextEventIndex]["event-name"]}}</td></tr>
-      <tr><td class="key" id="future-events">Future Events</td>
-      <td class="value">
-        <ol id="future-events-list">
-          <li v-for="ev in futureEvents()">{{ev.time}} : {{ev["event-name"]}}</li>
-        </ol>
-      </td></tr>
+      <tr>
+        <td class="key">現在</td>
+        <td class="value">{{currentTime}}, 前回同期時刻{{syncTime}}<span class="warn">{{mode}}</span></td>
+      </tr>
+      <tr>
+        <td class="key next-event">次のイベント</td>
+        <td class="value next-event">{{events[nextEventIndex].time}} : {{events[nextEventIndex]["event-name"]}}</td>
+      </tr>
+      <tr>
+        <td class="key" id="future-events">Future Events</td>
+        <td class="value">
+          <ol id="future-events-list">
+            <li v-for="ev in futureEvents()">{{ev.time}} : {{ev["event-name"]}}</li>
+          </ol>
+        </td>
+      </tr>
     </table>
   </div>
 </template>
@@ -25,6 +33,7 @@ export default {
   },
   data: function() {
     return {
+      syncTime: null,
       mode: null,
       currentTime: null,
       nextEventIndex: 0,
@@ -44,7 +53,9 @@ export default {
     },
     notify(eventName) {
       const fileName = new Schedule().getMusic(eventName)
-      new Audio(require("./assets/"+ fileName)).play();
+      new Audio(require("./assets/"+ fileName)).play().catch(e => {
+        console.log("error Audio.play: " + e);
+      });
       console.log(fileName)
     }
   },
@@ -62,6 +73,7 @@ export default {
         const nowText = nowDate.toLocaleTimeString();
         if (nowText != this.currentTime) {
           this.currentTime = nowText;
+          this.syncTime = new Date(clock.prevSyncTime()).toLocaleTimeString();
         }
         for (let i = this.nextEventIndex; i < this.events.length; i++) {
           const x = this.events[i];
@@ -125,6 +137,9 @@ export default {
 }
 .next-event {
   font-size: 200%;
+}
+.warn {
+  font-color: red;
 }
 
 </style>

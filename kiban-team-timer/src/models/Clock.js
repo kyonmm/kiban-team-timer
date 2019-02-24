@@ -8,6 +8,9 @@ export class Clock {
     this.id = Math.random();
     this.syncTimer = new Timer(() => this.sync(), 30 * 60 * 1000).start();
     this.localMode = localMode;
+    if (!localMode) {
+      this.syncTime = baseTime;
+    }
   }
 
   static async createAsync(ntpServers) {
@@ -27,7 +30,12 @@ export class Clock {
       this.baseTime = st;
       this.startTime = performance.now();
       this.isLocalMode = false;
+      this.syncTime = this.now();
     }).catch((e) => {});
+  }
+
+  prevSyncTime() {
+    return this.syncTime;
   }
 
   now() {
