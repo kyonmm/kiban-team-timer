@@ -288,7 +288,7 @@ export class Schedule {
   }
 
   getNextEventIndex(now) {
-    const nowNum = now.getHours() * 100 + now.getSeconds();
+    const nowNum = now.getHours() * 100 + now.getMinutes();
     return this.timerConfigJson.schedule.findIndex(s => {
       const t = Number.parseInt(s.time.replace(':', ''));
       return t > nowNum;
