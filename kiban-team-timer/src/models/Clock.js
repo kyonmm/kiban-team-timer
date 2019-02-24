@@ -29,7 +29,7 @@ export class Clock {
     Ntp.ntpNowAsync(crntNtpServer).then(st => {
       this.baseTime = st;
       this.startTime = performance.now();
-      this.isLocalMode = false;
+      this.localMode = false;
       this.syncTime = this.now();
     }).catch((e) => {});
   }
