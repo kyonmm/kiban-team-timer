@@ -31,7 +31,9 @@ export class Clock {
       this.startTime = performance.now();
       this.localMode = false;
       this.syncTime = this.now();
-    }).catch((e) => {});
+    }).catch((e) => {
+      console.log("failure: sync(). err:" + e);
+    });
   }
 
   prevSyncTime() {
