@@ -277,8 +277,8 @@ export class Schedule {
         "そろそろ終わり": "end-1h-review.mp3"
       },
       "ntp-server-urls": [
-        "http://ntp-a1.nict.go.jp/cgi-bin/json",
-        "http://ntp-b1.nict.go.jp/cgi-bin/json"
+        "https://ntp-a1.nict.go.jp/cgi-bin/json",
+        "https://ntp-b1.nict.go.jp/cgi-bin/json"
       ]
     }
   }
