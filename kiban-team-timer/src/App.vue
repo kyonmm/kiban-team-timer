@@ -1,29 +1,29 @@
 <template>
   <div id="app">
-    <table id="main-contents">
+    <input v-model="configFilePath"></input>
+    <button v-on:click="loadConfig">読み込み</button>
+    <table id="main-contents" v-if="loaded">
       <tr>
         <td class="key">現在</td>
         <td class="value">{{currentTime}}, 前回同期時刻{{syncTime}}<span class="warn">{{mode}}</span></td>
       </tr>
       <tr>
-        <td class="key">a</td>
-        <td class="value">
-          <schedule-record mute-mode="not-mute" time="12:34" event-name="hoge"></schedule-record>
-        </td>
-      </tr>
-      <tr>
         <td class="key current-event">現在のイベント</td>
-        <td class="value current-event">{{currentEventName()}}(残り: {{restTime()}})</td>
+        <td class="value current-event">{{currentEventName}}(残り: {{restTime()}})</td>
       </tr>
       <tr>
         <td class="key next-event">次のイベント</td>
-        <td class="value next-event">{{events[nextEventIndex].time}} : {{events[nextEventIndex]["event-name"]}}</td>
+        <td class="value next-event">
+          <schedule-record mute-mode="not-mute" :time="nextEventTime" :event-name="nextEventName"></schedule-record>
+        </td>
       </tr>
       <tr>
         <td class="key" id="future-events">Future Events</td>
         <td class="value">
           <ol id="future-events-list">
-            <li v-for="(ev, index) in futureEvents()" :key='index'>{{ev.time}} : {{ev["event-name"]}}</li>
+            <li v-for="(ev, index) in futureEvents" :key='index'>
+              <schedule-record mute-mode="not-mute" :time="ev.time" :event-name="ev.name"></schedule-record>
+            </li>
           </ol>
         </td>
       </tr>
@@ -33,11 +33,10 @@
 
 <script>
 import ScheduleRecord from "./components/ScheduleRecord.vue"
-import {Schedule} from "./models/Schedule.js"
+import {Config} from "./models/Config.js"
 import {Clock} from "./models/Clock.js"
 
 var clock;
-var settings;
 
 export default {
   name: 'app',
@@ -46,26 +45,101 @@ export default {
   },
   data: function() {
     return {
+      configFilePath: '',
+
+      config: {},
+      nextEventIndex: 0,
+
       syncTime: null,
       mode: null,
       currentTime: null,
-      nextEventIndex: 0,
-      events: [{}],
     }
   },
-  methods :{
+  computed: {
+    loaded() {
+      return Object.keys(this.config).length != 0;
+    },
+    allEvents() {
+      return this.config.getAllEvents();
+    },
+    currentEventName() {
+      const index = this.nextEventIndex == 0 ? this.allEvents.length - 1 : this.nextEventIndex - 1;
+      const ev = this.allEvents[index];
+      return ev.name;
+    },
+    nextEvent() {
+      return this.allEvents[this.nextEventIndex];
+    },
+    nextEventTime() {
+      return this.nextEvent.time;
+    },
+    nextEventName() {
+      return this.nextEvent.name;
+    },
     futureEvents() {
       const res = [];
-      for (let i = this.nextEventIndex + 1; i < this.events.length; i++) {
-        res.push(this.events[i]);
+      for (let i = this.nextEventIndex + 1; i < this.allEvents.length; i++) {
+        res.push(this.allEvents[i]);
       }
       for (let i = 0; i < this.nextEventIndex; i++) {
-        res.push(this.events[i]);
+        res.push(this.allEvents[i]);
       }
       return res;
     },
+  },
+  methods :{
+    loadConfig(e) {
+      console.log("click! config-file-path is " + this.configFilePath + ".");
+      let path = this.configFilePath;
+      if (!path.startsWith('http')) {
+        this.config = new Config(require('./assets/default-config.json'));
+        console.log('loaded config file from assets.');
+        this.reload();
+      } else {
+        Config.loadAsync(path).then(c => {
+          this.config = c;
+          console.log('loaded config file.');
+          this.reload();
+        }).catch(e => {
+          // TODO : error handling
+        });
+      }
+    },
+    reload() {
+      if (!clock) {
+        Clock.createAsync(this.config.getNtpServerUrls()).then(c => {
+          clock = c;
+          this.reload();
+        });
+        return;
+      }
+
+      clearInterval(this.intervalId);
+      const now = new Date(clock.now());
+      this.nextEventIndex = this.config.getNextEventIndex(now);
+      this.intervalId = setInterval(() => {
+        this.mode = clock.isLocalMode() ? '(システム時刻使用中)' : '';
+        const now = clock.now();
+        const nowDate = new Date(now);
+        const nowText = nowDate.toLocaleTimeString();
+        if (nowText != this.currentTime) {
+          this.currentTime = nowText;
+          this.syncTime = new Date(clock.prevSyncTime()).toLocaleTimeString();
+        }
+        for (let i = this.nextEventIndex; i < this.allEvents.length; i++) {
+          const ev = this.allEvents[i];
+          if (ev.isAfterThan(nowDate)) {
+            this.notify(ev.name);
+            this.nextEventIndex = i + 1;
+            if (this.nextEventIndex == this.allEvents.length) {
+              this.nextEventIndex = 0;
+            }
+          }
+        }
+      }, 100);
+    },
     notify(eventName) {
-      const fileName = new Schedule().getMusic(eventName)
+      const fileName = this.config.getMusic(eventName)
       new Audio(require("./assets/"+ fileName)).play().catch(e => {
         console.log("error Audio.play: " + e);
       });
@@ -75,66 +149,21 @@ export default {
       if (!clock) {
         return "";
       }
-      const schedule = new Schedule();
       const now = new Date(clock.now());
-      const x = this.events[schedule.getNextEventIndex(now)];
-      const nextEventTime = new Date(now.getTime());
-      const splitted = x.time.split(':');
-      nextEventTime.setHours(Number.parseInt(splitted[0]));
-      nextEventTime.setMinutes(Number.parseInt(splitted[1]));
-      nextEventTime.setSeconds(0);
-      nextEventTime.setMilliseconds(0);
-      const diff = nextEventTime - now;
+      const diff = this.nextEvent.diffInMillis(now);
       const restMin = Math.floor(diff / 60000);
       if (restMin != 0) {
-        return restMin + "分";
+        return restMin + '分';
       }
-      return Math.ceil(diff / 1000) + "秒";
+      return Math.ceil(diff / 1000) + '秒';
     },
-    currentEventName() {
-      const index = this.nextEventIndex == 0 ? this.events.length - 1 : this.nextEventIndex - 1;
-      return this.events[index]["event-name"];
-    }
-  },
-  created() {
-    const schedule = new Schedule();
-    this.events = schedule.getAllEvents();
-    Clock.createAsync(schedule.getNtpServerUrls()).then(c => {
-      clock = c;
-      const now = new Date(clock.now());
-      this.nextEventIndex = schedule.getNextEventIndex(now);
-      setInterval(() => {
-        this.mode = clock.isLocalMode() ? '(システム時刻使用中)' : '';
-        const now = clock.now();
-        const nowDate = new Date(now);
-        const nowText = nowDate.toLocaleTimeString();
-        if (nowText != this.currentTime) {
-          this.currentTime = nowText;
-          this.syncTime = new Date(clock.prevSyncTime()).toLocaleTimeString();
-        }
-        for (let i = this.nextEventIndex; i < this.events.length; i++) {
-          const x = this.events[i];
-          const eventTime = new Date(now);
-          const splitted = x.time.split(':');
-          eventTime.setHours(Number.parseInt(splitted[0]));
-          eventTime.setMinutes(Number.parseInt(splitted[1]));
-          eventTime.setSeconds(0);
-          eventTime.setMilliseconds(0);
-          const diff = eventTime.getTime() - now;
-          if (diff < 0) {
-            console.log(diff);
-            this.notify(x["event-name"]);
-            this.nextEventIndex = i + 1;
-          }
-        }
-      }, 100);
-    });
   },
   beforeDestroy() {
     console.log("before destroy");
     if (clock) {
       clock.dispose();
     }
+    clearInterval(this.intervalId);
   }
 }
 </script>
