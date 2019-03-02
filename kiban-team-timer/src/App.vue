@@ -6,6 +6,12 @@
         <td class="value">{{currentTime}}, 前回同期時刻{{syncTime}}<span class="warn">{{mode}}</span></td>
       </tr>
       <tr>
+        <td class="key">a</td>
+        <td class="value">
+          <schedule-record mute-mode="not-mute" time="12:34" event-name="hoge"></schedule-record>
+        </td>
+      </tr>
+      <tr>
         <td class="key current-event">現在のイベント</td>
         <td class="value current-event">{{currentEventName()}}(残り: {{restTime()}})</td>
       </tr>
@@ -26,14 +32,17 @@
 </template>
 
 <script>
+import ScheduleRecord from "./components/ScheduleRecord.vue"
 import {Schedule} from "./models/Schedule.js"
 import {Clock} from "./models/Clock.js"
 
 var clock;
+var settings;
 
 export default {
   name: 'app',
   components: {
+    ScheduleRecord
   },
   data: function() {
     return {
