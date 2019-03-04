@@ -2,6 +2,8 @@
   <div id="app">
     <input v-model="configFilePath"></input>
     <button v-on:click="loadConfig">読み込み</button>
+    <br/>
+    <input v-model="muteConfigFilePath"></input>
     <table id="main-contents" v-if="loaded">
       <tr>
         <td class="key">現在</td>
@@ -34,6 +36,7 @@
 <script>
 import ScheduleRecord from "./components/ScheduleRecord.vue"
 import {Config} from "./models/Config.js"
+import {MuteConfig} from "./models/MuteConfig.js"
 import {Clock} from "./models/Clock.js"
 
 var clock;
@@ -46,9 +49,11 @@ export default {
   data: function() {
     return {
       configFilePath: '',
+      muteConfigFilePath: '',
 
       config: {},
       nextEventIndex: 0,
+      muteEndDateTime: null,
 
       syncTime: null,
       mode: null,
@@ -114,6 +119,13 @@ export default {
         return;
       }
 
+      clearInterval(this.muteIntervalId);
+      this.muteIntervalId = setInterval(() => {
+        MuteConfig.loadAsync(this.muteConfigFilePath).then(config => {
+          this.muteEndDateTime = config.muteEnd;
+        });
+      }, 40 * 1000);
+
       clearInterval(this.intervalId);
       const now = new Date(clock.now());
       this.nextEventIndex = this.config.getNextEventIndex(now);
@@ -129,7 +141,9 @@ export default {
         for (let i = this.nextEventIndex; i < this.allEvents.length; i++) {
           const ev = this.allEvents[i];
           if (ev.isAfterThan(nowDate)) {
-            this.notify(ev.name);
+            if (!this.mute(now)) {
+              this.notify(ev.name);
+            }
             this.nextEventIndex = i + 1;
             if (this.nextEventIndex == this.allEvents.length) {
               this.nextEventIndex = 0;
@@ -137,6 +151,13 @@ export default {
           }
         }
       }, 100);
+    },
+    mute(now) {
+      if (!this.muteEndDateTime) {
+        return false;
+      }
+      const e = this.muteEndDateTime;
+      return now <= e.getTime();
     },
     notify(eventName) {
       const fileName = this.config.getMusic(eventName)
@@ -163,6 +184,7 @@ export default {
     if (clock) {
       clock.dispose();
     }
+    clearInterval(this.muteIntervalId);
     clearInterval(this.intervalId);
   }
 }
